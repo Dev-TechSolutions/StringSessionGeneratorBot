@@ -107,8 +107,6 @@ async def generate_session(bot, msg, telethon=False):
     #await msg.reply({text})
     if telethon:
         await client.send_file("me", L_PIC, caption="**{} - STRING SESSION** \n\n`{}`\n\n• __Don't Share String Session With Anyone__\n• __Don't Invite Anyone To Heroku__".format("TELETHON", string_session))
-        except BaseException:
-            pass
     else:
         await client.send_message("me", text)
     await client.disconnect()
