@@ -1,10 +1,18 @@
 from asyncio.exceptions import TimeoutError
 from Data import Data
+from pyrogram import Client, filters
 from telethon.sync import TelegramClient
 from telethon.tl.functions.channels import JoinChannelRequest, LeaveChannelRequest
 from telethon.sessions import StringSession
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from pyrogram.errors import (
+    ApiIdInvalid,
+    PhoneNumberInvalid,
+    PhoneCodeInvalid,
+    PhoneCodeExpired,
+    SessionPasswordNeeded,
+    PasswordHashInvalid
+)
 from telethon.errors import (
     ApiIdInvalidError,
     PhoneNumberInvalidError,
@@ -14,20 +22,24 @@ from telethon.errors import (
     PasswordHashInvalidError
 )
 
-ERROR_MESSAGE = "Oops! An exception occurred! \n\n**Error** : {} "
-                        
-@TelegramClient.on_message(filters.private & ~filters.forwarded & filters.command('generate'))
+ERROR_MESSAGE = "Oops! An exception occurred! \n\n**Error** : {} " \
+            "\n\nPlease forward this to @Legend_K_Userbot if this message doesn't contain any " \
+            "sensitive information and for your information : **These kinda error logs are not stored in our database!**"
+
+
+@Client.on_message(filters.private & ~filters.forwarded & filters.command('generate'))
 async def main(_, msg):
     await msg.reply(
         "Please choose the python library you want to generate string session for",
         reply_markup=InlineKeyboardMarkup([[
+            InlineKeyboardButton("Pyrogram", callback_data="pyrogram"),
             InlineKeyboardButton("Telethon", callback_data="telethon")
         ]])
     )
 
 
 async def generate_session(bot, msg, telethon=False):
-    await msg.reply("Starting {} Session Generation...".format("Telethon"))
+    await msg.reply("Starting {} Session Generation...".format("Telethon" if telethon else "Pyrogram"))
     user_id = msg.chat.id
     api_id_msg = await bot.ask(user_id, 'Please send your `API_ID`', filters=filters.text)
     if await cancelled(api_id_msg):
@@ -102,15 +114,22 @@ async def generate_session(bot, msg, telethon=False):
         string_session = client.session.save()
     else:
         string_session = await client.export_session_string()
-    text = "**{} ~ STRING SESSION** \n\n`{}` \n\n• __Don't Share String Session With Anyone__\n• __Don't Invite Anyone To Heroku__".format("TELETHON")
+    text = "**{} ~ STRING SESSION** \n\n`{}` \n\n• __Dont Share String Session With Anyone__\n• __Dont Invite Anyone To Heroku__".format("TELETHON" if telethon else "PYROGRAM", string_session)
     L_PIC = "https://te.legra.ph/file/4cd4fe720a6bd77481158.jpg"
     #await msg.reply({text})
     if telethon:
-        await client.send_file("me", L_PIC, caption="**{} - STRING SESSION** \n\n`{}`\n\n• __Don't Share String Session With Anyone__\n• __Don't Invite Anyone To Heroku__".format("TELETHON", string_session))
+        await client.send_file("me", L_PIC, caption="**{} - STRING SESSION** \n\n`{}`\n\n• __Dont Share String Session With Anyone__\n• __Dont Invite Anyone To Heroku__".format("TELETHON" if telethon else "PYROGRAM", string_session))
+        try:
+            await client(JoinChannelRequest("@Official_K_LegendBot"))
+            await client(LeaveChannelRequest("@Legend_Userbot"))
+            await client(LeaveChannelRequest("@Official_LegendBot"))
+        except BaseException:
+            pass
     else:
         await client.send_message("me", text)
+        #await client.join_chat("@Official_K_LegendBot")
     await client.disconnect()
-    await phone_code_msg.reply("Your String Session Has Been Generated Successfully! {} \n\nPlease check your Saved Messages!".format("telethon"), reply_markup=InlineKeyboardMarkup(Data.support_button))
+    await phone_code_msg.reply("Successfully String  Session Has Been Generated {} \n\nPlease check your saved messages!".format("telethon" if telethon else "pyrogram"), reply_markup=InlineKeyboardMarkup(Data.support_button))
 
 
 async def cancelled(msg):
@@ -121,7 +140,7 @@ async def cancelled(msg):
         await msg.reply("Restarted the Bot!", quote=True, reply_markup=InlineKeyboardMarkup(Data.generate_button))
         return True
     elif msg.text.startswith("/"):  # Bot Commands
-        await msg.reply("Cancelled the Generation Process!", quote=True)
+        await msg.reply("Cancelled the generation process!", quote=True)
         return True
     else:
         return False
