@@ -1,8 +1,8 @@
-# STRING-GENERATOR BOT
+# String-Session Generator Bot
 
 - This Bot Can Help You To Generate Pyrogram & Telethon String Session.  
 
-- ⚠️ Note : Dont Try To Missuse This Bot.
+- ⚠️ Note : Dont Try To Make Missuse of This Bot.
 
 ------------
 <h3> Deploy to Heroku </h3>
